@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, FilterQuery } from 'mongoose';
 import { User, UserDoc } from "./schemas/user.schema";
@@ -14,34 +14,46 @@ export class UserService {
         return await (this.userModel.findOne({ userId }))
     }
 
+    async getUserByEmail(email: string): Promise<User> {
+        return await (this.userModel.findOne({ email }))
+    }
+
+    async getUserByUsername(username: string): Promise<User> {
+        return await (this.userModel.findOne({ username }))
+    }
+
     async getUsers(): Promise<User[]> {
         return this.userModel.find({});
     }
 
-    async createUser(email: string, username: string, password: string): Promise<User> {
+    async createUser(username: string, password: string): Promise<User> {
         const newUser = new this.userModel({
             userId: uuidv4(),
-            email,
+            // email,
             username,
             password,
         });
-        return newUser.save();
+        try {
+            return newUser.save();
+        }
+        catch (err) {
+            if (err === 11000) {
+                throw new ConflictException("User already exists")
+            }
+            throw err
+        }
     }
 
-    async updateUser(userId: string, userUpdates: UpdateUserDto): Promise<User> {
-        console.log(userUpdates, " ", userId)
-        return this.userModel.findOneAndUpdate({ userId }, userUpdates)
+    async updateUser(userId: string, username: string): Promise<User> {
+        return this.userModel.findOneAndUpdate({ userId }, { username })
             .setOptions({ new: true })
     }
 
-    async checkPass(userId: string): Promise<User> {
-        console.log(userId)
-        return (await this.userModel.findOne({ userId }));
+    async checkPass(userId: string): Promise<string> {
+        return (await this.userModel.findOne({ userId }))["password"];
     }
 
     async updatePass(userId: string, password: string): Promise<User> {
-
-        console.log(userId, " ", password)
         return this.userModel.findOneAndUpdate({ userId }, { password })
             .setOptions({ new: true })
     }
