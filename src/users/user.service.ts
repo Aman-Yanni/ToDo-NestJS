@@ -33,15 +33,13 @@ export class UserService {
             username,
             password,
         });
-        try {
-            return newUser.save();
-        }
-        catch (err) {
-            if (err === 11000) {
+        return newUser.save().catch((err) => {
+            console.log(err.code)
+            if (err.code === 11000) {
                 throw new ConflictException("User already exists")
             }
             throw err
-        }
+        });
     }
 
     async updateUser(userId: string, username: string): Promise<User> {

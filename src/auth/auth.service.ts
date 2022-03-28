@@ -51,14 +51,9 @@ export class AuthService {
 
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        try {
-            const user = await this.userService.createUser(username, hashedPassword)
+        const user = await this.userService.createUser(username, hashedPassword)
 
-            return this.login(user)
-        }
-        catch (err) {
-            throw err
-        }
+        return this.login(user).catch(err => { throw err })
     }
 
     async validateUser(username: string, password: string): Promise<User> {
