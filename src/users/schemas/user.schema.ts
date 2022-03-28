@@ -13,7 +13,7 @@ export class User {
     userId: Types.ObjectId;
 
     @Prop({
-        unique: true,
+        // unique: true,
         type: String,
     })
     email: string;
@@ -25,7 +25,7 @@ export class User {
     username: string;
 
     @Prop()
-    password: string;
+    password?: string;
 
     // @Prop({ type: [Types.ObjectId], ref: ToDo.name, nullable: true })
     // todos: ToDo[]
