@@ -29,4 +29,9 @@ export class TodoService {
 
     }
 
+    async removeTodo(id: string, userId: string): Promise<ToDo[]> {
+        let item = await this.todoModel.findOneAndDelete({ id })
+        return this.findTodos(userId)
+    }
+
 }

@@ -29,4 +29,10 @@ export class TodoController {
     async getUserTodos(@Request() req): Promise<ToDo[]> {
         return this.todoService.findTodos(req.user.userId)
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('remove')
+    async removeTodo(@Request() req, @Body() removeTodoDto: { id: string }): Promise<ToDo[]> {
+        return this.todoService.removeTodo(removeTodoDto.id, req.user.userId)
+    }
 }
