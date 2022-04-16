@@ -3,35 +3,53 @@ import { InjectModel } from "@nestjs/mongoose";
 import { ToDo, TodoDoc } from "./schemas/todo.schema";
 import { Model } from "mongoose"
 import { v4 as uuid } from 'uuid'
+import { User, ToDo as ToDoModel, Prisma, Status } from '@prisma/client'
+import { PrismaService } from "prisma/prisma.service";
 
 
 @Injectable()
 export class TodoService {
-    constructor(@InjectModel(ToDo.name) private todoModel: Model<TodoDoc>) { }
+    constructor(@InjectModel(ToDo.name) private todoModel: Model<TodoDoc>, private readonly prismaService: PrismaService) { }
 
-    async createTodo(userId: string, content: string): Promise<ToDo> {
-        const todo = new this.todoModel({
-            id: uuid(),
-            content: content,
-            completion: false,
-            userId: userId
+    async createTodo(data: Prisma.ToDoCreateInput): Promise<ToDoModel> {
+        return this.prismaService.toDo.create({
+            data,
         });
-        return todo.save();
     }
 
-    async updateCompletion(id: string, completion: boolean): Promise<ToDo> {
-        return this.todoModel.findOneAndUpdate({ id }, { completion })
-            .setOptions({ new: true })
+    async findTodos(params: {
+        where?: Prisma.UserWhereInput;
+    }): Promise<ToDoModel[]> {
+        const { where } = params;
+        return this.prismaService.toDo.findMany({
+            where,
+        });
     }
 
-    async findTodos(userId: string): Promise<ToDo[]> {
-        return this.todoModel.find({ userId })
 
+    async updateCompletion(id: Prisma.ToDoWhereUniqueInput, completion: Status): Promise<ToDoModel> {
+        return this.prismaService.toDo.update({
+            where: id,
+            data: {
+                completion
+            }
+        })
     }
 
-    async removeTodo(id: string, userId: string): Promise<ToDo[]> {
-        let item = await this.todoModel.findOneAndDelete({ id })
-        return this.findTodos(userId)
+    async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel> {
+        return this.prismaService.toDo.update({
+            where: id,
+            data: {
+                title,
+                desc
+            }
+        })
+    }
+
+
+    async removeTodo(id: Prisma.ToDoWhereUniqueInput, userId: Prisma.UserWhereUniqueInput): Promise<ToDoModel[]> {
+        let item = await this.prismaService.toDo.delete({ where: id })
+        return this.findTodos({ where: userId })
     }
 
 }

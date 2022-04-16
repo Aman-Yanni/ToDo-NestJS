@@ -13,8 +13,8 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('/signup')
-    async signUp(@Body(ValidationPipe) createUserDto: AuthCredentialsDto): Promise<any> {
-        return await this.authService.signUp(createUserDto);
+    async signUp(@Body(ValidationPipe) userData: { username: string; email: string, password: string }): Promise<any> {
+        return await this.authService.signUp(userData);
     }
 
     @UseGuards(LocalAuthGuard)
