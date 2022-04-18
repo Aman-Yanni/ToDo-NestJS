@@ -1,10 +1,11 @@
-import { Body, ConsoleLogger, Controller, Get, Param, Patch, Post, Req, Request, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, Req, Request, Response, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { CreateTodoDto } from "./dto/create.dto";
 import { ToDo } from "./schemas/todo.schema";
 import { TodoService } from "./todo.service";
 import { ToDo as TodoModel, Prisma, Status } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { response } from 'express';
 
 @UseGuards(JwtAuthGuard)
 @Controller("todos")
@@ -16,9 +17,19 @@ export class TodoController {
     async createTodos(
         @Request() req,
         @Body() todoData: { title: string, desc: string, completion: any },
-    ): Promise<TodoModel> {
+    ): Promise<any> {
         const { title, desc, completion } = todoData
-        return this.todoService.createTodo({
+        if (!title) {
+            throw new HttpException("'Title' is required", HttpStatus.BAD_REQUEST)
+        }
+        else if (title && title === '') {
+            throw new BadRequestException("'Title' cannot be empty")
+        }
+        else if (completion && !(completion in Status)) {
+            throw new HttpException("invalid completion value", HttpStatus.BAD_REQUEST)
+        }
+
+        const res = this.todoService.createTodo({
             title,
             desc,
             completion,
@@ -27,34 +38,100 @@ export class TodoController {
                     userId: req.user.userId
                 }
             }
+        }).then(response => {
+            // console.log(response)
+            return {
+                success: true,
+                status: HttpStatus.OK,
+                data: response
+            }
+        }).catch(err => {
+            throw new HttpException(err, HttpStatus.BAD_REQUEST)
         });
+        return res
     }
 
 
     @Get('/allById')
-    async getUserTOdos(@Request() req): Promise<TodoModel[]> {
+    async getUserTOdos(@Request() req): Promise<any> {
         const { userId } = req.user
-        return this.todoService.findTodos({ where: { userId } })
+
+        const res = this.todoService.findTodos({ where: { userId } })
+            .then(response => {
+                // console.log(response)
+                return {
+                    success: true,
+                    status: HttpStatus.OK,
+                    data: response
+                }
+            })
+            .catch(err => {
+                throw new HttpException(err, HttpStatus.BAD_REQUEST)
+            })
+        return res
     }
 
 
 
     @Patch('/updateCompletion')
-    async updateCompletion(@Body() updateTodoDto: { id: string, completion: Status }): Promise<TodoModel> {
+    async updateCompletion(@Body() updateTodoDto: { id: string, completion: Status }): Promise<any> {
         const { id, completion } = updateTodoDto
-        return this.todoService.updateCompletion({ id }, completion)
+        if (completion && !(completion in Status)) {
+            throw new HttpException("invalid completion value", HttpStatus.BAD_REQUEST)
+        }
+
+        const res = this.todoService.updateCompletion({ id }, completion).then(response => {
+            // console.log(response)
+            return {
+                success: true,
+                status: HttpStatus.OK,
+                data: response
+            }
+        }).catch(err => {
+            throw new HttpException(err, HttpStatus.BAD_REQUEST)
+        });
+
+        return res
     }
 
     @Patch('/updateContent')
-    async udpateContent(@Body() updateTodoDto: { id: string, title: string, desc: string }): Promise<TodoModel> {
+    async udpateContent(@Body() updateTodoDto: { id: string, title: string, desc: string }): Promise<any> {
         const { id, title, desc } = updateTodoDto;
-        return this.todoService.updateContent({ id }, title, desc)
+        if (!id) {
+            throw new BadRequestException("'id' field is required")
+        }
+        else if (title && title === '') {
+            throw new BadRequestException("'Title' cannot be empty")
+        }
+        const res = this.todoService.updateContent({ id }, title, desc).then(response => {
+            // console.log(response)
+            return {
+                success: true,
+                status: HttpStatus.OK,
+                data: response
+            }
+        }).catch(err => {
+            throw new HttpException(err, HttpStatus.BAD_REQUEST)
+        });
+
+        return res
     }
 
     @Post('/removeTodo')
-    async removeTodo(@Request() req, @Body() removeTodoDto: { id: string }): Promise<TodoModel[]> {
+    async removeTodo(@Request() req, @Body() removeTodoDto: { id: string }): Promise<any> {
         const { userId } = req.user
         const { id } = removeTodoDto
-        return this.todoService.removeTodo({ id }, { userId })
+        const res = this.todoService.removeTodo({ id }, { userId }).then(response => {
+            // console.log(response)
+            return {
+                success: true,
+                status: HttpStatus.OK,
+                data: response
+            }
+        }).catch(err => {
+            throw new HttpException(err, HttpStatus.BAD_REQUEST)
+        });
+
+        return res
     }
 }

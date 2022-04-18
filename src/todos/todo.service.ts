@@ -1,10 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { ToDo, TodoDoc } from "./schemas/todo.schema";
 import { Model } from "mongoose"
 import { v4 as uuid } from 'uuid'
 import { User, ToDo as ToDoModel, Prisma, Status } from '@prisma/client'
 import { PrismaService } from "prisma/prisma.service";
+import { NotFoundError } from "rxjs";
 
 
 @Injectable()
@@ -36,14 +37,22 @@ export class TodoService {
         })
     }
 
-    async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel> {
-        return this.prismaService.toDo.update({
+    async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel | HttpException> {
+        const res = this.prismaService.toDo.update({
             where: id,
             data: {
                 title,
                 desc
             }
+        }).then(res => {
+            return res
+        }).catch(err => {
+            console.log(err)
+            const msg = err.meta ? err.meta.message : err
+            throw new HttpException(msg, HttpStatus.BAD_REQUEST)
         })
+
+        return res
     }
 
 
