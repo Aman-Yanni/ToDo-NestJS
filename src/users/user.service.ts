@@ -5,54 +5,46 @@ import { User, UserDoc } from "./schemas/user.schema";
 import { UserRepo } from './user.repo';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateUserDto } from './dto/update.dto';
+import { PrismaService } from 'prisma/prisma.service';
+import { User as UserModel, Prisma } from '@prisma/client'
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<UserDoc>) { }
+    constructor(@InjectModel(User.name) private userModel: Model<UserDoc>, private readonly prismaService: PrismaService) { }
 
-    async getUserById(userId: string): Promise<User> {
-        return await (this.userModel.findOne({ userId }))
+
+
+    async getUsers(params: {
+        where?: Prisma.UserWhereInput;
+    }): Promise<UserModel[]> {
+        const { where } = params;
+        return this.prismaService.user.findMany({ where });
     }
 
-    async getUserByEmail(email: string): Promise<User> {
-        return await (this.userModel.findOne({ email }))
-    }
-
-    async getUserByUsername(username: string): Promise<User> {
-        return await (this.userModel.findOne({ username }))
-    }
-
-    async getUsers(): Promise<User[]> {
-        return this.userModel.find({});
-    }
-
-    async createUser(username: string, password: string): Promise<User> {
-        const newUser = new this.userModel({
-            userId: uuidv4(),
-            // email,
-            username,
-            password,
-        });
-        return newUser.save().catch((err) => {
-            console.log(err.code)
-            if (err.code === 11000) {
-                throw new ConflictException("User already exists")
-            }
-            throw err
+    async createUser(data: Prisma.UserCreateInput): Promise<UserModel> {
+        return this.prismaService.user.create({
+            data,
         });
     }
 
-    async updateUser(userId: string, username: string): Promise<User> {
-        return this.userModel.findOneAndUpdate({ userId }, { username })
-            .setOptions({ new: true })
+
+    async getUserByUniqueValue(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<UserModel | null> {
+        return await (this.prismaService.user.findUnique({ where: userWhereUniqueInput }))
     }
 
-    async checkPass(userId: string): Promise<string> {
-        return (await this.userModel.findOne({ userId }))["password"];
+
+    async updateUser(userId: Prisma.UserWhereUniqueInput, username: string): Promise<UserModel> {
+        return this.prismaService.user.update({
+            where: userId,
+            data: { username }
+        })
     }
 
-    async updatePass(userId: string, password: string): Promise<User> {
-        return this.userModel.findOneAndUpdate({ userId }, { password })
-            .setOptions({ new: true })
+
+    async updatePass(userId: Prisma.UserWhereUniqueInput, password: string): Promise<UserModel> {
+        return this.prismaService.user.update({
+            where: userId,
+            data: { password }
+        })
     }
 }

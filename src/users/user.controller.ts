@@ -1,63 +1,57 @@
-import { Body, ConsoleLogger, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, ConsoleLogger, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.dto';
 import { UpdateUserDto } from './dto/update.dto';
 
 import { User } from './schemas/user.schema';
 import { UserService } from './user.service';
+import { User as UserModel, Prisma } from '@prisma/client'
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
     constructor(
-        private readonly usersService: UserService
+        private readonly usersService: UserService,
     ) { }
 
-    @Get('/check-pass/:userId')
-    async checkPass(@Param('userId') userId: string): Promise<string> {
-        const password = await (this.usersService.checkPass(userId));
-        console.log(password)
-        if (password) {
-            return password
-        }
-        else {
-            return "add a password"
-        }
+
+    @Post('/create')
+    async createUser(
+        @Body() userData: { username: string; email: string, password: string },
+    ): Promise<UserModel> {
+        return this.usersService.createUser(userData);
     }
 
-    @Get(':userId')
-    async getUser(@Param('userId') userId: string): Promise<User> {
-        return this.usersService.getUserById(userId);
+    @UseGuards(JwtAuthGuard)
+    @Get('/all')
+    async getUsers(): Promise<UserModel[]> {
+        return this.usersService.getUsers({})
     }
 
-    @Get()
-    async getUsers(): Promise<User[]> {
-        return this.usersService.getUsers();
+    @UseGuards(JwtAuthGuard)
+    @Get('/byId')
+    async getUser(@Request() req): Promise<UserModel> {
+        const { userId } = req.user
+        return this.usersService.getUserByUniqueValue({ userId })
     }
 
 
-
-    @Post()
-    async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
-        return this.usersService.createUser(
-            // createUserDto.email,
-            createUserDto.username,
-            createUserDto.password,
-        );
-    }
-
-    @Patch('/update-pass')
-    async updatePass(@Body() userUpdatePass: {
-        userId: string,
+    @UseGuards(JwtAuthGuard)
+    @Patch('/updatePass')
+    async updatePass(@Request() req, @Body() userUpdatePass: {
         password: string
-    }): Promise<User> {
-        return this.usersService.updatePass(userUpdatePass.userId, userUpdatePass.password);
+    }): Promise<UserModel> {
+        const { userId } = req.user
+
+        return this.usersService.updatePass({ userId }, userUpdatePass.password);
     }
 
-    @Patch('/:userId')
-    async updateUser(
-        @Param('userId') userId: string,
+    @Patch('/updateUsername')
+    async updateUsername(
+        @Request() req,
         @Body() updateUserDto: UpdateUserDto,
-    ): Promise<User> {
-        return this.usersService.updateUser(userId, updateUserDto.username);
+    ): Promise<UserModel> {
+        const { userId } = req.user
+        return this.usersService.updateUser({ userId }, updateUserDto.username);
     }
 
 
