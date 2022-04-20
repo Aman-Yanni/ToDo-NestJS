@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../users/user.service'
 import { JwtService } from '@nestjs/jwt'
-import { jwtSecret } from './config';
 import * as bcrypt from 'bcrypt'
 import { User as UserModel } from '@prisma/client';
-
+dotenv.config()
 @Injectable()
 export class AuthService {
     constructor(
@@ -38,7 +37,7 @@ export class AuthService {
     }
 
     async verify(token: string): Promise<UserModel> {
-        const decoded = this.jwtService.verify(token, { secret: jwtSecret })
+        const decoded = this.jwtService.verify(token, { secret: process.env.JWT_TOKEN })
 
         const user = this.userService.getUserByUniqueValue({ email: decoded.email })
         return user;
