@@ -3,6 +3,8 @@ import { UserService } from '../users/user.service'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User as UserModel } from '@prisma/client';
+import * as dotenv from 'dotenv';
+
 dotenv.config()
 @Injectable()
 export class AuthService {
