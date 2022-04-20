@@ -26,7 +26,7 @@ services:
     healthcheck:
       test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo ) -eq 1
       interval: 10s
-     ! You can uncomment this port part if you want mongodb to be available to your local computer and not just docker
+     # ! You can uncomment this port part if you want mongodb to be available to your local computer and not just docker
      ports:
        - 27017:27017
     networks:
