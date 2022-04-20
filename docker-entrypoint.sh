@@ -1,2 +1,2 @@
-yarn prisma db push
+yarn db:migrate
 yarn start
