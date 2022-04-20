@@ -32,6 +32,13 @@
 $ npm install
 ```
 
+## Requirements
+Before running the application, you need add these variables to a `.env` file.
+```
+DATABASE_URL="mongodb://host:port/database"
+JWT_TOKEN="enteravalidjwttokenhere"
+```
+
 ## Running the app
 
 ```bash
@@ -44,6 +51,17 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## Docker Run
+To run the docker setup, you just need to run the following command:
+```
+docker-compose up -d
+```
+Once you're done with the container, run:
+```
+docker-compose down --rmi all -v 
+```
+The above ?????? command will remove everything created by docker and not take up any space after the run.
 
 ## Test
 

@@ -1,0 +1,39 @@
+version: "3.3"
+
+services:
+  dev:
+    container_name: nestjs_todo_dev
+    image: nestjs_todo_dev:1.0.0
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 3007:3007
+    links:
+      - mongodb:mongo
+    networks:
+      - nest-network
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    command: --replSet rs0 --bind_ip_all
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo ) -eq 1
+      interval: 10s
+    # ! You can uncomment this port part if you want mongodb to be available to your local computer and not just docker
+    # ports:
+    #   - 27017:27017
+    networks:
+      - nest-network
+    restart: always
+
+  
+networks:
+  nest-network:
+    driver: bridge
