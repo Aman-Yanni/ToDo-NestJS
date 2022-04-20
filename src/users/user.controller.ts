@@ -1,8 +1,4 @@
 import { Body, ConsoleLogger, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
-import { CreateUserDto } from './dto/create.dto';
-import { UpdateUserDto } from './dto/update.dto';
-
-import { User } from './schemas/user.schema';
 import { UserService } from './user.service';
 import { User as UserModel, Prisma } from '@prisma/client'
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
@@ -48,7 +44,7 @@ export class UsersController {
     @Patch('/updateUsername')
     async updateUsername(
         @Request() req,
-        @Body() updateUserDto: UpdateUserDto,
+        @Body() updateUserDto: { username: string },
     ): Promise<UserModel> {
         const { userId } = req.user
         return this.usersService.updateUser({ userId }, updateUserDto.username);

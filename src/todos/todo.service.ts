@@ -1,16 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { ToDo, TodoDoc } from "./schemas/todo.schema";
-import { Model } from "mongoose"
-import { v4 as uuid } from 'uuid'
 import { User, ToDo as ToDoModel, Prisma, Status } from '@prisma/client'
 import { PrismaService } from "prisma/prisma.service";
-import { NotFoundError } from "rxjs";
 
 
 @Injectable()
 export class TodoService {
-    constructor(@InjectModel(ToDo.name) private todoModel: Model<TodoDoc>, private readonly prismaService: PrismaService) { }
+    constructor(private readonly prismaService: PrismaService) { }
 
     async createTodo(data: Prisma.ToDoCreateInput): Promise<ToDoModel> {
         return this.prismaService.toDo.create({

@@ -1,7 +1,5 @@
 import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, Req, Request, Response, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
-import { CreateTodoDto } from "./dto/create.dto";
-import { ToDo } from "./schemas/todo.schema";
 import { TodoService } from "./todo.service";
 import { ToDo as TodoModel, Prisma, Status } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
@@ -100,10 +98,13 @@ export class TodoController {
         if (!id) {
             throw new BadRequestException("'id' field is required")
         }
-        else if (title && title === '') {
+        if (id && typeof id !== "string") {
+            throw new BadRequestException("'id' invalid type, must be type string")
+        }
+        else if (title && title.trim().length === 0) {
             throw new BadRequestException("'Title' cannot be empty")
         }
-        const res = this.todoService.updateContent({ id }, title, desc).then(response => {
+        const res = this.todoService.updateContent({ id }, title ? title.trim() : title, desc).then(response => {
             // console.log(response)
             return {
                 success: true,

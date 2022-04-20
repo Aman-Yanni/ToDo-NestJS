@@ -1,8 +1,6 @@
 import { Body, Controller, Get, Post, Request, UseGuards, ValidationPipe } from "@nestjs/common";
-import { CreateUserDto } from "src/users/dto/create.dto";
-import { User } from "src/users/schemas/user.schema";
+import { User } from "@prisma/client";
 import { AuthService } from "./auth.service";
-import { AuthCredentialsDto } from "./dto/auth-credentials.dto";
 import { JwtAuthGuard } from "./guard/jwt-auth.guard";
 import { LocalAuthGuard } from "./guard/local-auth.guard";
 

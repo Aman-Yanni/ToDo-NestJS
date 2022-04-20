@@ -1,16 +1,10 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { InjectModel } from "@nestjs/mongoose";
-import { Model, FilterQuery } from 'mongoose';
-import { User, UserDoc } from "./schemas/user.schema";
-import { UserRepo } from './user.repo';
-import { v4 as uuidv4 } from 'uuid';
-import { UpdateUserDto } from './dto/update.dto';
 import { PrismaService } from 'prisma/prisma.service';
 import { User as UserModel, Prisma } from '@prisma/client'
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<UserDoc>, private readonly prismaService: PrismaService) { }
+    constructor(private readonly prismaService: PrismaService) { }
 
 
 
