@@ -69,6 +69,8 @@ export class TodoController {
         return res
     }
 
+    @Get('/search')
+    async searchTodo() { }
 
 
     @Patch('/updateCompletion')
@@ -117,6 +119,8 @@ export class TodoController {
 
         return res
     }
+
+
 
     @Post('/removeTodo')
     async removeTodo(@Request() req, @Body() removeTodoDto: { id: string }): Promise<any> {

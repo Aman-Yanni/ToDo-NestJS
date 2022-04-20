@@ -59,7 +59,7 @@ docker-compose up -d
 ```
 Once you're done with the container, run:
 ```
-docker-compose down --rmi all -v 
+docker-compose down -v 
 ```
 The above ?????? command will remove everything created by docker and not take up any space after the run.
 

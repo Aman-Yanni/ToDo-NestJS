@@ -22,6 +22,9 @@ export class TodoService {
         });
     }
 
+    async searchTodo(search: string,): Promise<ToDoModel> {
+        return
+    }
 
     async updateCompletion(id: Prisma.ToDoWhereUniqueInput, completion: Status): Promise<ToDoModel> {
         return this.prismaService.toDo.update({
