@@ -24,16 +24,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<IncomingMessage>();
-    const code = getStatusCode(exception);
+    const status = getStatusCode(exception);
     const message = getErrorMessage(exception);
 
-    response.status(code).json({
-      error: {
-        timestamp: new Date().toISOString(),
-        path: request.url,
-        code,
-        message
-      },
+    response.status(status).json({
+      success: false,
+      status,
+      errors: message
     });
   }
 }

@@ -13,8 +13,9 @@ export class AuthService {
         private readonly jwtService: JwtService
     ) { }
 
-    async validate(email: string, password: string): Promise<UserModel> {
-        const user = this.userService.getUserByUniqueValue({ email })
+    async validate(usernameOrEmail: string, password: string): Promise<UserModel> {
+        // const user = this.userService.getUserByUniqueValue({ })
+        const user = this.userService.getUserByUniqueValue({ username: usernameOrEmail }) || this.userService.getUserByUniqueValue({ email: usernameOrEmail });
 
         if (!user) {
             return null
@@ -27,21 +28,24 @@ export class AuthService {
         }
     }
 
-    async login(user: UserModel): Promise<{ access_token: string }> {
+    async login(user: UserModel): Promise<any> {
         const payload = {
-            username: user,
+            user: user,
             sub: user.userId
         }
 
         return {
+            email: user.email,
+            username: user.username,
             access_token: this.jwtService.sign(payload),
         }
     }
 
     async verify(token: string): Promise<UserModel> {
         const decoded = this.jwtService.verify(token, { secret: process.env.JWT_TOKEN })
-
-        const user = this.userService.getUserByUniqueValue({ email: decoded.email })
+        console.log('decoded')
+        console.log(decoded)
+        const user = this.userService.getUserByUniqueValue({ email: decoded.user.email }) || this.userService.getUserByUniqueValue({ username: decoded.user.username })
         return user;
     }
 
@@ -55,8 +59,8 @@ export class AuthService {
         return this.login(user).catch(err => { throw err })
     }
 
-    async validateUser(username: string, password: string): Promise<UserModel> {
-        const user = await this.userService.getUserByUniqueValue({ username });
+    async validateUser(usernameOrEmail: string, password: string): Promise<UserModel> {
+        const user = await this.userService.getUserByUniqueValue({ email: usernameOrEmail }) || await this.userService.getUserByUniqueValue({ username: usernameOrEmail });
         if (!user) {
             return null
         }
@@ -68,6 +72,4 @@ export class AuthService {
 
         return null
     }
-
-
 }
