@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { User, ToDo as ToDoModel, Prisma, Status } from '@prisma/client'
 import { PrismaService } from "prisma/prisma.service";
 
@@ -22,8 +22,37 @@ export class TodoService {
         });
     }
 
-    async searchTodo(search: string,): Promise<ToDoModel> {
-        return
+    async searchTodo(params: {
+        where?: Prisma.ToDoWhereInput;
+    }, query): Promise<ToDoModel[]> {
+        const { where } = params
+        let list = []
+        await this.prismaService.toDo.findMany({ where })
+            .then(res => {
+                res.forEach(item => {
+                    if (item.title.toLowerCase().includes(query.toLowerCase()) || item.desc.toLowerCase().includes(query.toLowerCase())) {
+                        list.push(item)
+                    }
+                })
+            }).catch(err => {
+                throw new BadRequestException(err)
+            })
+
+        return list
+    }
+
+    async filterTodo(params: {
+        where?: Prisma.ToDoWhereInput
+    }): Promise<ToDoModel[]> {
+        const { where } = params
+        let list = await this.prismaService.toDo.findMany({ where })
+            .then(res => {
+                return res
+            }).catch(err => {
+                throw new BadRequestException(err)
+            })
+
+        return list
     }
 
     async updateCompletion(id: Prisma.ToDoWhereUniqueInput, completion: Status): Promise<ToDoModel> {
@@ -45,7 +74,6 @@ export class TodoService {
         }).then(res => {
             return res
         }).catch(err => {
-            console.log(err)
             const msg = err.meta ? err.meta.message : err
             throw new HttpException(msg, HttpStatus.BAD_REQUEST)
         })

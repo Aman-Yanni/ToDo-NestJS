@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, Req, Request, Response, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, Req, Request, Response, UseGuards, ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { TodoService } from "./todo.service";
 import { ToDo as TodoModel, Prisma, Status } from '@prisma/client';
@@ -27,7 +27,7 @@ export class TodoController {
             throw new HttpException("invalid completion value", HttpStatus.BAD_REQUEST)
         }
 
-        const res = this.todoService.createTodo({
+        const res = await this.todoService.createTodo({
             title,
             desc,
             completion,
@@ -38,15 +38,15 @@ export class TodoController {
             }
         }).then(response => {
             // console.log(response)
-            return {
-                success: true,
-                status: HttpStatus.OK,
-                data: response
-            }
+            return response
         }).catch(err => {
             throw new HttpException(err, HttpStatus.BAD_REQUEST)
         });
-        return res
+        return {
+            success: true,
+            status: HttpStatus.OK,
+            data: res
+        }
     }
 
 
@@ -54,23 +54,59 @@ export class TodoController {
     async getUserTOdos(@Request() req): Promise<any> {
         const { userId } = req.user
 
-        const res = this.todoService.findTodos({ where: { userId } })
+        const res = await this.todoService.findTodos({ where: { userId } })
             .then(response => {
-                // console.log(response)
-                return {
-                    success: true,
-                    status: HttpStatus.OK,
-                    data: response
-                }
+                return response
             })
             .catch(err => {
                 throw new HttpException(err, HttpStatus.BAD_REQUEST)
             })
-        return res
+        return {
+            success: true,
+            status: HttpStatus.OK,
+            data: res
+        }
     }
 
     @Get('/search')
-    async searchTodo() { }
+    async searchTodo(@Request() req, @Body() serachDto: { query: string }): Promise<any> {
+        const { userId } = req.user;
+        const { query } = serachDto;
+
+        const res = await this.todoService.searchTodo({
+            where: { userId }
+        }, query).then(res => {
+            return res
+        }).catch(err => {
+            throw new BadRequestException(err)
+        })
+        return {
+            success: true,
+            status: HttpStatus.OK,
+            data: res
+        }
+    }
+
+    @Get('/filter')
+    async filterTodo(@Request() req, @Body(ValidationPipe) searchDto: { completion: Status }): Promise<any> {
+        const { userId } = req.user;
+        const { completion } = searchDto;
+        if (completion && !(completion in Status)) {
+            throw new HttpException("invalid completion value", HttpStatus.BAD_REQUEST)
+        }
+        const res = await this.todoService.filterTodo({
+            where: { userId, completion }
+        }).then(res => {
+            return res
+        }).catch(err => {
+            throw new BadRequestException(err)
+        })
+        return {
+            success: true,
+            status: HttpStatus.OK,
+            data: res
+        }
+    }
 
 
     @Patch('/updateCompletion')
@@ -80,18 +116,18 @@ export class TodoController {
             throw new HttpException("invalid completion value", HttpStatus.BAD_REQUEST)
         }
 
-        const res = this.todoService.updateCompletion({ id }, completion).then(response => {
+        const res = await this.todoService.updateCompletion({ id }, completion).then(response => {
             // console.log(response)
-            return {
-                success: true,
-                status: HttpStatus.OK,
-                data: response
-            }
+            return response
         }).catch(err => {
             throw new HttpException(err, HttpStatus.BAD_REQUEST)
         });
 
-        return res
+        return {
+            success: true,
+            status: HttpStatus.OK,
+            data: res
+        }
     }
 
     @Patch('/updateContent')
@@ -106,18 +142,18 @@ export class TodoController {
         else if (title && title.trim().length === 0) {
             throw new BadRequestException("'Title' cannot be empty")
         }
-        const res = this.todoService.updateContent({ id }, title ? title.trim() : title, desc).then(response => {
+        const res = await this.todoService.updateContent({ id }, title ? title.trim() : title, desc).then(response => {
             // console.log(response)
-            return {
-                success: true,
-                status: HttpStatus.OK,
-                data: response
-            }
+            return response
         }).catch(err => {
             throw new HttpException(err, HttpStatus.BAD_REQUEST)
         });
 
-        return res
+        return {
+            success: true,
+            status: HttpStatus.OK,
+            data: res
+        }
     }
 
 
@@ -126,17 +162,17 @@ export class TodoController {
     async removeTodo(@Request() req, @Body() removeTodoDto: { id: string }): Promise<any> {
         const { userId } = req.user
         const { id } = removeTodoDto
-        const res = this.todoService.removeTodo({ id }, { userId }).then(response => {
+        const res = await this.todoService.removeTodo({ id }, { userId }).then(response => {
             // console.log(response)
-            return {
-                success: true,
-                status: HttpStatus.OK,
-                data: response
-            }
+            return response
         }).catch(err => {
             throw new HttpException(err, HttpStatus.BAD_REQUEST)
         });
 
-        return res
+        return {
+            success: true,
+            status: HttpStatus.OK,
+            data: res
+        }
     }
 }
