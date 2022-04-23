@@ -1,2 +1,2 @@
 yarn db:migrate
-yarn start
+yarn start:dev

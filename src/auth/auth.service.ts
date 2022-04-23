@@ -61,11 +61,13 @@ export class AuthService {
 
     async validateUser(usernameOrEmail: string, password: string): Promise<UserModel> {
         const user = await this.userService.getUserByUniqueValue({ email: usernameOrEmail }) || await this.userService.getUserByUniqueValue({ username: usernameOrEmail });
+        console.log(user)
         if (!user) {
             return null
         }
 
         const valid = await bcrypt.compare(password, user.password)
+        console.log(valid)
         if (valid) {
             return user;
         }

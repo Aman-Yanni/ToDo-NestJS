@@ -20,17 +20,23 @@ export const getErrorMessage = (exception: unknown): string => {
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<IncomingMessage>();
     const status = getStatusCode(exception);
-    const message = getErrorMessage(exception);
+    const message = exception.response.message;
+    const request = ctx.getRequest<IncomingMessage>();
 
     response.status(status).json({
       success: false,
       status,
       errors: message
     });
+
+    // response.status(status).json({
+    //   success: false,
+    //   status,
+    //   errors: message
+    // });
   }
 }
