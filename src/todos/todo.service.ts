@@ -8,9 +8,14 @@ export class TodoService {
     constructor(private readonly prismaService: PrismaService) { }
 
     async createTodo(data: Prisma.ToDoCreateInput): Promise<ToDoModel> {
-        return this.prismaService.toDo.create({
+        return await this.prismaService.toDo.create({
             data,
         });
+    }
+
+    async findTodo(params: { where?: Prisma.ToDoWhereUniqueInput }): Promise<ToDoModel> {
+        const { where } = params;
+        return await this.prismaService.toDo.findUnique({ where })
     }
 
     async findTodos(params: {
@@ -56,7 +61,7 @@ export class TodoService {
     }
 
     async updateCompletion(id: Prisma.ToDoWhereUniqueInput, completion: Status): Promise<ToDoModel> {
-        return this.prismaService.toDo.update({
+        return await this.prismaService.toDo.update({
             where: id,
             data: {
                 completion
@@ -65,7 +70,7 @@ export class TodoService {
     }
 
     async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel | HttpException> {
-        const res = this.prismaService.toDo.update({
+        const res = await this.prismaService.toDo.update({
             where: id,
             data: {
                 title,
@@ -84,7 +89,7 @@ export class TodoService {
 
     async removeTodo(id: Prisma.ToDoWhereUniqueInput, userId: Prisma.UserWhereUniqueInput): Promise<ToDoModel[]> {
         let item = await this.prismaService.toDo.delete({ where: id })
-        return this.findTodos({ where: userId })
+        return await this.findTodos({ where: userId })
     }
 
 }

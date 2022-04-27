@@ -3,18 +3,18 @@ import { Response } from 'express';
 import { IncomingMessage } from 'http';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-export const getStatusCode = (exception: unknown): number => {
+export const getStatusCode = (exception: any): number => {
   return exception instanceof HttpException
     ? exception.getStatus()
     : HttpStatus.INTERNAL_SERVER_ERROR;
 };
 
-export const getErrorMessage = (exception: unknown): string => {
+export const getErrorMessage = (exception: any): any => {
   if (exception instanceof HttpException) {
     return String(exception.message);
   }
-  else {
-    return String(exception)
+  else if (exception && exception.response) {
+    return String(exception.response.message)
   }
 };
 
@@ -24,8 +24,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = getStatusCode(exception);
-    const message = exception.response.message;
+    const message = getErrorMessage(exception) instanceof Array ? getErrorMessage(exception) : [getErrorMessage(exception)];
     const request = ctx.getRequest<IncomingMessage>();
+
 
     response.status(status).json({
       success: false,

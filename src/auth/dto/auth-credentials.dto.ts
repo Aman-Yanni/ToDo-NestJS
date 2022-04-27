@@ -1,11 +1,11 @@
 
-import { isEmail, IsString, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsString, MaxLength, MinLength } from "class-validator";
 
 
 export class AuthCredentialsDto {
-    // @IsString();
-    username: string;
+    username?: string;
 
+    @IsEmail()
     email: string;
 
     // @IsString();

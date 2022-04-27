@@ -12,23 +12,28 @@ export class UserService {
         where?: Prisma.UserWhereInput;
     }): Promise<UserModel[]> {
         const { where } = params;
-        return this.prismaService.user.findMany({ where });
+        return await this.prismaService.user.findMany({ where });
     }
 
     async createUser(data: Prisma.UserCreateInput): Promise<UserModel> {
-        return this.prismaService.user.create({
+
+        return await this.prismaService.user.create({
             data,
+        }).catch(err => {
+            console.log(err)
+            throw err
         });
     }
 
 
     async getUserByUniqueValue(userWhereUniqueInput: Prisma.UserWhereUniqueInput): Promise<UserModel | null> {
         return await (this.prismaService.user.findUnique({ where: userWhereUniqueInput }))
+
     }
 
 
     async updateUser(userId: Prisma.UserWhereUniqueInput, username: string): Promise<UserModel> {
-        return this.prismaService.user.update({
+        return await this.prismaService.user.update({
             where: userId,
             data: { username }
         })
@@ -36,7 +41,7 @@ export class UserService {
 
 
     async updatePass(userId: Prisma.UserWhereUniqueInput, password: string): Promise<UserModel> {
-        return this.prismaService.user.update({
+        return await this.prismaService.user.update({
             where: userId,
             data: { password }
         })
