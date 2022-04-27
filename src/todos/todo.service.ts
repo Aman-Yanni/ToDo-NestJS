@@ -1,20 +1,21 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { ToDo, TodoDoc } from "./schemas/todo.schema";
-import { Model } from "mongoose"
-import { v4 as uuid } from 'uuid'
+import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { User, ToDo as ToDoModel, Prisma, Status } from '@prisma/client'
 import { PrismaService } from "prisma/prisma.service";
 
 
 @Injectable()
 export class TodoService {
-    constructor(@InjectModel(ToDo.name) private todoModel: Model<TodoDoc>, private readonly prismaService: PrismaService) { }
+    constructor(private readonly prismaService: PrismaService) { }
 
     async createTodo(data: Prisma.ToDoCreateInput): Promise<ToDoModel> {
-        return this.prismaService.toDo.create({
+        return await this.prismaService.toDo.create({
             data,
         });
+    }
+
+    async findTodo(params: { where?: Prisma.ToDoWhereUniqueInput }): Promise<ToDoModel> {
+        const { where } = params;
+        return await this.prismaService.toDo.findUnique({ where })
     }
 
     async findTodos(params: {
@@ -26,9 +27,41 @@ export class TodoService {
         });
     }
 
+    async searchTodo(params: {
+        where?: Prisma.ToDoWhereInput;
+    }, query): Promise<ToDoModel[]> {
+        const { where } = params
+        let list = []
+        await this.prismaService.toDo.findMany({ where })
+            .then(res => {
+                res.forEach(item => {
+                    if (item.title.toLowerCase().includes(query.toLowerCase()) || item.desc.toLowerCase().includes(query.toLowerCase())) {
+                        list.push(item)
+                    }
+                })
+            }).catch(err => {
+                throw new BadRequestException(err)
+            })
+
+        return list
+    }
+
+    async filterTodo(params: {
+        where?: Prisma.ToDoWhereInput
+    }): Promise<ToDoModel[]> {
+        const { where } = params
+        let list = await this.prismaService.toDo.findMany({ where })
+            .then(res => {
+                return res
+            }).catch(err => {
+                throw new BadRequestException(err)
+            })
+
+        return list
+    }
 
     async updateCompletion(id: Prisma.ToDoWhereUniqueInput, completion: Status): Promise<ToDoModel> {
-        return this.prismaService.toDo.update({
+        return await this.prismaService.toDo.update({
             where: id,
             data: {
                 completion
@@ -36,20 +69,27 @@ export class TodoService {
         })
     }
 
-    async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel> {
-        return this.prismaService.toDo.update({
+    async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel | HttpException> {
+        const res = await this.prismaService.toDo.update({
             where: id,
             data: {
                 title,
                 desc
             }
+        }).then(res => {
+            return res
+        }).catch(err => {
+            const msg = err.meta ? err.meta.message : err
+            throw new HttpException(msg, HttpStatus.BAD_REQUEST)
         })
+
+        return res
     }
 
 
     async removeTodo(id: Prisma.ToDoWhereUniqueInput, userId: Prisma.UserWhereUniqueInput): Promise<ToDoModel[]> {
         let item = await this.prismaService.toDo.delete({ where: id })
-        return this.findTodos({ where: userId })
+        return await this.findTodos({ where: userId })
     }
 
 }
