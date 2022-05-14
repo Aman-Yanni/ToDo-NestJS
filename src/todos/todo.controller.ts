@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Req, Request, Response, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Req, Request, Response, UseGuards, ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { TodoService } from "./todo.service";
 import { ToDo as TodoModel, Prisma, Status } from '@prisma/client';
@@ -15,7 +15,7 @@ export class TodoController {
     @Post('/create')
     async createTodos(
         @Request() req,
-        @Body() todoData: { title: string, desc: string, completion: any },
+        @Body(ValidationPipe) todoData: { title: string, desc: string, completion: any },
     ): Promise<any> {
         const { title, desc, completion } = todoData
         if (!title) {
@@ -89,9 +89,9 @@ export class TodoController {
     }
 
     @Get('/filter')
-    async filterTodo(@Request() req, @Body() searchDto: { completion: Status }): Promise<any> {
+    async filterTodo(@Request() req, @Body() filterDto: { completion: Status }): Promise<any> {
         const { userId } = req.user;
-        const { completion } = searchDto;
+        const { completion } = filterDto;
         if (completion && !(completion in Status)) {
             throw new HttpException("invalid completion value", HttpStatus.BAD_REQUEST)
         }

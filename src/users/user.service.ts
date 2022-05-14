@@ -2,6 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { User as UserModel, Prisma } from '@prisma/client'
 
+import * as bcrypt from 'bcrypt'
 @Injectable()
 export class UserService {
     constructor(private readonly prismaService: PrismaService) { }
@@ -41,9 +42,11 @@ export class UserService {
 
 
     async updatePass(userId: Prisma.UserWhereUniqueInput, password: string): Promise<UserModel> {
+        const newPass = await bcrypt.hash(password, 10)
+
         return await this.prismaService.user.update({
             where: userId,
-            data: { password }
+            data: { password: newPass }
         })
     }
 }

@@ -13,7 +13,7 @@ dotenv.config()
 @Module({
   imports: [UserModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({ secret: process.env.JWT_TOKEN, signOptions: { expiresIn: '3600s' } })
+    JwtModule.register({ secret: process.env.JWT_TOKEN, signOptions: { expiresIn: '10s' } })
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],

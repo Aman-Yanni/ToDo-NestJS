@@ -10,11 +10,11 @@ export const getStatusCode = (exception: any): number => {
 };
 
 export const getErrorMessage = (exception: any): any => {
-  if (exception instanceof HttpException) {
-    return String(exception.message);
+  if (exception && exception.response) {
+    return String(exception.response.message);
   }
-  else if (exception && exception.response) {
-    return String(exception.response.message)
+  else if (exception instanceof HttpException) {
+    return String(exception.message)
   }
 };
 
@@ -24,11 +24,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = getStatusCode(exception);
-    const message = getErrorMessage(exception) instanceof Array ? getErrorMessage(exception) : [getErrorMessage(exception)];
+    const message = getErrorMessage(exception)
     const request = ctx.getRequest<IncomingMessage>();
 
 
-    response.status(status).json({
+    response.json({
       success: false,
       status,
       errors: message

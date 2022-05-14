@@ -66,10 +66,15 @@ export class TodoService {
             data: {
                 completion
             }
+        }).then(res => {
+            return res
+        }).catch(err => {
+            const msg = err.meta ? err.meta.message : err
+            throw new HttpException(msg, HttpStatus.BAD_REQUEST)
         })
     }
 
-    async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel | HttpException> {
+    async updateContent(id: Prisma.ToDoWhereUniqueInput, title: string, desc: string): Promise<ToDoModel> {
         const res = await this.prismaService.toDo.update({
             where: id,
             data: {

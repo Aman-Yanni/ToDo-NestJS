@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt'
 import { User as UserModel } from '@prisma/client';
 import * as dotenv from 'dotenv';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { use } from 'passport';
 
 dotenv.config()
 @Injectable()
@@ -17,8 +18,12 @@ export class AuthService {
 
     async login(user: UserModel): Promise<any> {
         const payload = {
-            user: user,
-            sub: user.userId
+            user: {
+                userId: user.userId,
+                email: user.email,
+                username: user.username
+            },
+            sub: user.userId,
         }
 
         return {
