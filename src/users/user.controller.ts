@@ -16,6 +16,8 @@ export class UsersController {
     async createUser(
         @Body() userData: { username: string; email: string, password: string },
     ): Promise<UserModel> {
+        const data = { username: userData.username.trim(), email: userData.username.trim().toLowerCase, password: userData.password.trim() }
+
         return this.usersService.createUser(userData);
     }
 

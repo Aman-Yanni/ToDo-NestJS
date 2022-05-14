@@ -35,20 +35,20 @@ export class AuthService {
 
     async verify(token: string): Promise<UserModel> {
         const decoded = this.jwtService.verify(token, { secret: process.env.JWT_TOKEN })
-        const user = this.userService.getUserByUniqueValue({ email: decoded.user.email }) || this.userService.getUserByUniqueValue({ username: decoded.user.username })
+        const user = this.userService.getUserByUniqueValue({ email: decoded.user.email.trim().toLowerCase() }) || this.userService.getUserByUniqueValue({ username: decoded.user.username.trim() })
         return user;
     }
 
     async signUp(userData: AuthCredentialsDto): Promise<{ access_token: string }> {
         const { username, email, password } = userData;
         const hashedPassword = await bcrypt.hash(password, 10)
-        const user = await this.userService.createUser({ username, email, password: hashedPassword })
+        const user = await this.userService.createUser({ username: username.trim(), email: email.trim().toLowerCase(), password: hashedPassword })
 
         return this.login(user).catch(err => { throw err })
     }
 
     async validateUser(usernameOrEmail: string, password: string): Promise<UserModel> {
-        const user = await this.userService.getUserByUniqueValue({ email: usernameOrEmail }) || await this.userService.getUserByUniqueValue({ username: usernameOrEmail });
+        const user = await this.userService.getUserByUniqueValue({ email: usernameOrEmail.trim().toLowerCase() }) || await this.userService.getUserByUniqueValue({ username: usernameOrEmail.trim() });
         if (!user) {
             throw new NotFoundException("User does not exist")
         }
