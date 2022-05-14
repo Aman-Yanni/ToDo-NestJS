@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Req, Request, Response, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, ConsoleLogger, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, Request, Response, UseGuards, ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { TodoService } from "./todo.service";
 import { ToDo as TodoModel, Prisma, Status } from '@prisma/client';
@@ -70,9 +70,9 @@ export class TodoController {
     }
 
     @Get('/search')
-    async searchTodo(@Request() req, @Body() serachDto: { query: string }): Promise<any> {
+    async searchTodo(@Request() req, @Query() searchDto: { query: string }): Promise<any> {
         const { userId } = req.user;
-        const { query } = serachDto;
+        const { query } = searchDto;
 
         const res = await this.todoService.searchTodo({
             where: { userId }
